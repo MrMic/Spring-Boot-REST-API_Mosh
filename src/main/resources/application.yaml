@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: store
+  datasource:
+    url: jdbc:mysql://172.32.0.3:3306/store_api?createDatabaseIfNotExist=true
+    username: root
+    password: pepere
+  jpa:
+    show-sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: false
+    locations: classpath:db/migration
