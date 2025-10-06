@@ -1,0 +1,5 @@
+### GET all Users
+GET http://localhost:8080/users
+
+### GET User by ID
+GET http://localhost:8080/users/1
