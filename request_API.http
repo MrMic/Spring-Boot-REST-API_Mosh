@@ -3,3 +3,6 @@ GET http://localhost:8080/users
 
 ### GET User by ID
 GET http://localhost:8080/users/1
+
+### QueryParameter
+GET http://localhost:8080/users?sort=name
