@@ -21,7 +21,10 @@ public class UserController {
 
   @GetMapping
   public Iterable<UserDto> getAllUsers(
+//      @RequestHeader( required = false, name = "x-auth-token") String authToken,
       @RequestParam(required = false, defaultValue = "", name = "sort") String sortBy) {
+//    System.out.println("Auth Token: " + authToken); // For demonstration purposes only
+
     if (!Set.of("name", "email").contains(sortBy)) sortBy = "name"; // validate sort parameter
 
     return userRepository.findAll(Sort.by(sortBy)).stream().map(userMapper::toDto).toList();
