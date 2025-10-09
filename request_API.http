@@ -9,3 +9,7 @@ GET http://localhost:8080/users?sort=name
 
 ### GET all Products
 GET http://localhost:8080/products
+
+### GET Product by ID
+GET http://localhost:8080/products/4
+
