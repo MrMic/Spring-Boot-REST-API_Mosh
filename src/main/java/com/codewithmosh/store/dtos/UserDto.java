@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public class UserDto {
-  @JsonIgnore
+//  @JsonIgnore
   private Long id;
   private String name;
   private String email;
