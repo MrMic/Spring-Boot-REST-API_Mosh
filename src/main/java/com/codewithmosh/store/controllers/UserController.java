@@ -6,99 +6,102 @@ import com.codewithmosh.store.dtos.UpdateUserRequest;
 import com.codewithmosh.store.dtos.UserDto;
 import com.codewithmosh.store.mappers.UserMapper;
 import com.codewithmosh.store.repositories.UserRepository;
-import java.util.Set;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Set;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
-  private final UserRepository userRepository;
-  private final UserMapper userMapper;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-  public UserController(UserRepository userRepository, UserMapper userMapper) {
-    this.userRepository = userRepository;
-    this.userMapper = userMapper;
-  }
-
-  @GetMapping
-  public Iterable<UserDto> getAllUsers(
-      // @RequestHeader( required = false, name = "x-auth-token") String authToken,
-      @RequestParam(required = false, defaultValue = "", name = "sort") String sortBy) {
-    // System.out.println("Auth Token: " + authToken); // For demonstration purposes
-    // only
-
-    if (!Set.of("name", "email").contains(sortBy)) sortBy = "name"; // validate sort parameter
-
-    return userRepository.findAll(Sort.by(sortBy)).stream().map(userMapper::toDto).toList();
-  }
-
-  @GetMapping("/{id}")
-  public ResponseEntity<UserDto> getUser(@PathVariable Long id) {
-    var user = userRepository.findById(id).orElse(null);
-    if (user == null) {
-      return ResponseEntity.notFound().build();
+    public UserController(UserRepository userRepository, UserMapper userMapper) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
-    return ResponseEntity.ok(userMapper.toDto(user));
-  }
+    @GetMapping
+    public Iterable<UserDto> getAllUsers(
+        // @RequestHeader( required = false, name = "x-auth-token") String authToken,
+        @RequestParam(required = false, defaultValue = "", name = "sort") String sortBy) {
+        // System.out.println("Auth Token: " + authToken); // For demonstration purposes
+        // only
 
-  @PostMapping
-  public ResponseEntity<UserDto> createUser(
-      @RequestBody RegisterUserRequest request, UriComponentsBuilder uriBuilder) {
-    var user = userMapper.toEntity(request);
-    userRepository.save(user);
+        if (!Set.of("name", "email").contains(sortBy)) sortBy = "name"; // validate sort parameter
 
-    var userDto = userMapper.toDto(user);
-    var uri = uriBuilder.path("/users/{id}").buildAndExpand(user.getId()).toUri();
-    return ResponseEntity.created(uri).body(userDto);
-  }
-
-  @PutMapping("/{id}")
-  public ResponseEntity<UserDto> updateUser(
-      @PathVariable(name = "id") Long id, @RequestBody UpdateUserRequest request) {
-    var user = userRepository.findById(id).orElse(null);
-    if (user == null) {
-      return ResponseEntity.notFound().build();
+        return userRepository.findAll(Sort.by(sortBy)).stream().map(userMapper::toDto).toList();
     }
 
-    userMapper.update(request, user);
-    userRepository.save(user);
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDto> getUser(@PathVariable Long id) {
+        var user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
 
-    return ResponseEntity.ok(userMapper.toDto(user));
-  }
-
-  @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-    var user = userRepository.findById(id).orElse(null);
-    if (user == null) {
-      return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(userMapper.toDto(user));
     }
 
-    userRepository.deleteById(id);
-    return ResponseEntity.noContent().build();
-  }
+    @PostMapping
+    public ResponseEntity<UserDto> createUser(
+        @Valid @RequestBody RegisterUserRequest request,
+        UriComponentsBuilder uriBuilder) {
+        var user = userMapper.toEntity(request);
+        userRepository.save(user);
 
-  @PostMapping("/{id}/change-password")
-  public ResponseEntity<Void> changePassword(
-      @PathVariable Long id, /*, @RequestBody ChangePasswordRequest request*/
-      @RequestBody ChangePasswordRequest request
-      ) {
-    var user = userRepository.findById(id).orElse(null);
-    if (user == null) {
-      return ResponseEntity.notFound().build();
+        var userDto = userMapper.toDto(user);
+        var uri = uriBuilder.path("/users/{id}").buildAndExpand(user.getId()).toUri();
+        return ResponseEntity.created(uri).body(userDto);
     }
 
-    if (!user.getPassword().equals(request.getOldPassword())) {
-      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    @PutMapping("/{id}")
+    public ResponseEntity<UserDto> updateUser(
+        @PathVariable(name = "id") Long id, @RequestBody UpdateUserRequest request) {
+        var user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        userMapper.update(request, user);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(userMapper.toDto(user));
     }
 
-    user.setPassword(request.getNewPassword());
-    userRepository.save(user);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        var user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
 
-    return ResponseEntity.noContent().build();
-  }
+        userRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<Void> changePassword(
+        @PathVariable Long id, /*, @RequestBody ChangePasswordRequest request*/
+        @RequestBody ChangePasswordRequest request
+    ) {
+        var user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (!user.getPassword().equals(request.getOldPassword())) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        user.setPassword(request.getNewPassword());
+        userRepository.save(user);
+
+        return ResponseEntity.noContent().build();
+    }
 }
