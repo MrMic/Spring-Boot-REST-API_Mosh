@@ -75,13 +75,14 @@
         <dependency>
             <artifactId>flyway-core</artifactId>
             <groupId>org.flywaydb</groupId>
-            <version>9.22.3</version>
+            <version>10.15.0</version>
         </dependency>
 
         <dependency>
             <artifactId>flyway-mysql</artifactId>
             <groupId>org.flywaydb</groupId>
-            <version>9.22.3</version>
+<!--            <version>9.22.3</version>-->
+            <version>10.15.0</version>
         </dependency>
 
         <dependency>
@@ -156,9 +157,9 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>10.15.0</version>
                 <configuration>
-                    <url>jdbc:mysql://localhost:3306/store_api?createDatabaseIfNotExist=true</url>
+                    <url>jdbc:mysql://172.32.0.3:3306/store_api?createDatabaseIfNotExist=true</url>
                     <user>root</user>
-                    <password>MyPassword!</password>
+                    <password>pepere</password>
                     <cleanDisabled>false</cleanDisabled>
                 </configuration>
             </plugin>
