@@ -14,16 +14,15 @@ import java.util.UUID;
 @Entity
 @Table(name = "carts")
 public class Cart {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id")
-    private UUID id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(name = "id")
+  private UUID id;
 
-    @Column(name = "date_created", insertable = false, updatable = false)
-    private LocalDate dateCreated;
+  @Column(name = "date_created", insertable = false, updatable = false)
+  private LocalDate dateCreated;
 
-    @OneToMany(mappedBy = "cart")
-    private Set<CartItem> cartItems = new LinkedHashSet<>();
-
+  @OneToMany(mappedBy = "cart", cascade = CascadeType.MERGE)
+  private Set<CartItem> cartItems = new LinkedHashSet<>();
 
 }
