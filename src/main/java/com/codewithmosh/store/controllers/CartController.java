@@ -44,7 +44,12 @@ public class CartController {
       return ResponseEntity.notFound().build();
     }
 
-    var product = productRepository.findById(request.getProductId()).orElse(null);
+    var productId = request.getProductId();
+    if (productId == null) {
+      return ResponseEntity.badRequest().build();
+    }
+
+    var product = productRepository.findById(productId).orElse(null);
     if (product == null) {
       return ResponseEntity.badRequest().build();
     }
@@ -106,6 +111,19 @@ public class CartController {
     }
 
     cart.removeItem(productId);
+    cartRepository.save(cart);
+
+    return ResponseEntity.noContent().build();
+  }
+
+  @DeleteMapping("/{cartId}/items")
+  public ResponseEntity<?> clearCart(@PathVariable("cartId") UUID cartId) {
+    var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+    if (cart == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    cart.clear();
     cartRepository.save(cart);
 
     return ResponseEntity.noContent().build();
