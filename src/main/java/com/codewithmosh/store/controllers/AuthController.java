@@ -16,26 +16,31 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
+  private final AuthenticationManager authenticationManager;
+  private final JwtService jwtService;
 
-    @PostMapping("/login")
-    public ResponseEntity<JwtResponse> login(
-        @Valid @RequestBody LoginRequest request) {
-        authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                request.getEmail(),
-                request.getPassword()
-            )
-        );
+  @PostMapping("/login")
+  public ResponseEntity<JwtResponse> login(
+      @Valid @RequestBody LoginRequest request) {
+    authenticationManager.authenticate(
+        new UsernamePasswordAuthenticationToken(
+            request.getEmail(),
+            request.getPassword()));
 
-        var token = jwtService.generateToken(request.getEmail());
+    var token = jwtService.generateToken(request.getEmail());
 
-        return ResponseEntity.ok(new JwtResponse(token));
-    }
+    return ResponseEntity.ok(new JwtResponse(token));
+  }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Void> handleBadCredentialsException() {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
+  @PostMapping("validate")
+  private boolean validate(@RequestHeader("Authorization") String authHeader) {
+    var token = authHeader.replace("Bearer ", "");
+
+    return jwtService.validateToken(token);
+  }
+
+  @ExceptionHandler(BadCredentialsException.class)
+  public ResponseEntity<Void> handleBadCredentialsException() {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+  }
 }
