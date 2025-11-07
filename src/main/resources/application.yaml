@@ -21,3 +21,5 @@ spring:
       enabled: true
     livereload:
       enabled: true
+  jwt:
+    secret: ${JWT_SECRET}
