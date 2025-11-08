@@ -20,12 +20,9 @@ public class AuthController {
   private final JwtService jwtService;
 
   @PostMapping("/login")
-  public ResponseEntity<JwtResponse> login(
-      @Valid @RequestBody LoginRequest request) {
+  public ResponseEntity<JwtResponse> login(@Valid @RequestBody LoginRequest request) {
     authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(
-            request.getEmail(),
-            request.getPassword()));
+        new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
     var token = jwtService.generateToken(request.getEmail());
 
@@ -34,6 +31,8 @@ public class AuthController {
 
   @PostMapping("validate")
   private boolean validate(@RequestHeader("Authorization") String authHeader) {
+    System.out.println("Validate called");
+
     var token = authHeader.replace("Bearer ", "");
 
     return jwtService.validateToken(token);
