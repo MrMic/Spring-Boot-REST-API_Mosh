@@ -1,0 +1,17 @@
+### ENV
+@baseUrl = http://localhost:8080
+
+### LOGIN
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "m.chlon@example.com",
+  "password": "123465"
+}
+
+### GET Current User
+GET {{baseUrl}}/auth/me
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJtLmNobG9uQGV4YW1wbGUuY29tIiwibmFtZSI6Ik1pYyIsImlhdCI6MTc2Mjc2OTAzMCwiZXhwIjoxNzYyODU1NDMwfQ.0hd6dGaAO2BSKqkJG96KD3TDwu7a44PNmJlV_QY8bsBcfYFzLMmFsUcDOsax8zSrEPF33UkAQhgtuc2Ybpe4Zg
+
