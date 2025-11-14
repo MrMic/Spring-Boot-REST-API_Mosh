@@ -12,8 +12,8 @@ import javax.crypto.SecretKey;
 @Data
 public class JwtConfig {
     private String secret;
-    private int accessTokenExpiration;
-    private int refreshTokenExpiration;
+    private int accessTokenExpiration; // in seconds
+    private int refreshTokenExpiration; // in seconds
 
     public SecretKey getSecretKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());

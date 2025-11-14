@@ -1,17 +1,33 @@
 ### ENV
 @baseUrl = http://localhost:8080
 
+### CREATE USER
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "name": "User1",
+  "email": "user1@example.com",
+  "password": "123456"
+}
+
 ### LOGIN
 POST http://localhost:8080/auth/login
 Content-Type: application/json
 
 {
-  "email": "m.chlon@example.com",
-  "password": "123465"
+  "email": "user1@example.com",
+  "password": "123456"
 }
+
+> {% client.global.set("auth_token", response.body.token); %}
 
 ### GET Current User
 GET {{baseUrl}}/auth/me
-Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJtLmNobG9uQGV4YW1wbGUuY29tIiwibmFtZSI6Ik1pYyIsImlhdCI6MTc2Mjc2OTAzMCwiZXhwIjoxNzYyODU1NDMwfQ.0hd6dGaAO2BSKqkJG96KD3TDwu7a44PNmJlV_QY8bsBcfYFzLMmFsUcDOsax8zSrEPF33UkAQhgtuc2Ybpe4Zg
+Authorization: Bearer {{auth_token}}
+
+### GET Admin User
+GET http://localhost:8080/admin/hello
+Authorization: Bearer {{auth_token}}
+
 
