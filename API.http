@@ -30,4 +30,26 @@ Authorization: Bearer {{auth_token}}
 GET http://localhost:8080/admin/hello
 Authorization: Bearer {{auth_token}}
 
+### Test Checkout
+POST {{baseUrl}}/checkout
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "cartId": "1a6f6e84-88e5-4a55-b8ee-228bee4715bf"
+}
+
+### Create a Cart
+POST {{baseUrl}}/carts
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+### Add Items to cart
+POST {{baseUrl}}/carts/1a6f6e84-88e5-4a55-b8ee-228bee4715bf/items
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "productId": "6"
+}
 
