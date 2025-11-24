@@ -4,15 +4,11 @@ import com.codewithmosh.store.dtos.CheckoutRequest;
 import com.codewithmosh.store.dtos.CheckoutResponse;
 import com.codewithmosh.store.dtos.ErrorDto;
 import com.codewithmosh.store.entities.Order;
-import com.codewithmosh.store.entities.OrderItem;
-import com.codewithmosh.store.entities.OrderStatus;
 import com.codewithmosh.store.repositories.CartRepository;
 import com.codewithmosh.store.repositories.OrderRepository;
 import com.codewithmosh.store.services.AuthService;
 import com.codewithmosh.store.services.CartService;
 import jakarta.validation.Valid;
-import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,37 +22,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class CheckoutController {
 
   private final CartRepository cartRepository;
-    private final AuthService authService;
-    private final OrderRepository orderRepository;
-    private final CartService cartService;
+  private final AuthService authService;
+  private final OrderRepository orderRepository;
+  private final CartService cartService;
 
-    @PostMapping
+  @PostMapping
   public ResponseEntity<?> checkout(@Valid @RequestBody CheckoutRequest request) {
     var cart = cartRepository.getCartWithItems(request.getCartId()).orElse(null);
     if (cart == null) {
-      return ResponseEntity.badRequest().body(
-          new ErrorDto("Cart not found."));
+      return ResponseEntity.badRequest().body(new ErrorDto("Cart not found."));
     }
 
     if (cart.getItems().isEmpty()) {
-      return ResponseEntity.badRequest().body(
-          new ErrorDto("Cart is empty."));
+      return ResponseEntity.badRequest().body(new ErrorDto("Cart is empty."));
     }
 
-    var order = new Order();
-    order.setTotalPrice(cart.getTotalPrice());
-    order.setStatus(OrderStatus.PENDING);
-    order.setCustomer(authService.getCurrentUser());
-
-    cart.getItems().forEach( item -> {
-      var orderItem = new OrderItem();
-      orderItem.setOrder(order);
-      orderItem.setProduct(item.getProduct());
-      orderItem.setQuantity(item.getQuantity());
-      orderItem.setTotalPrice(item.getTotalPrice());
-      orderItem.setUnitPrice(item.getProduct().getPrice());
-      order.getItems().add(orderItem);
-    });
+    var order = Order.fromCart(cart, authService.getCurrentUser());
 
     orderRepository.save(order);
 
