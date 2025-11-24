@@ -11,8 +11,17 @@ Content-Type: application/json
   "password": "123456"
 }
 
+### GET Current User
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{auth_token}}
+
+### GET Admin User
+GET http://localhost:8080/admin/hello
+Authorization: Bearer {{auth_token}}
+
+
 ### LOGIN
-POST http://localhost:8080/auth/login
+POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
@@ -22,13 +31,23 @@ Content-Type: application/json
 
 > {% client.global.set("auth_token", response.body.token); %}
 
-### GET Current User
-GET {{baseUrl}}/auth/me
+
+
+### Create a Cart
+POST {{baseUrl}}/carts
+Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
-### GET Admin User
-GET http://localhost:8080/admin/hello
+> {% client.global.set("cart_id", response.body.id); %}
+
+### Add Items to cart
+POST {{baseUrl}}/carts/{{cart_id}}/items
+Content-Type: application/json
 Authorization: Bearer {{auth_token}}
+
+{
+  "productId": "6"
+}
 
 ### Test Checkout
 POST {{baseUrl}}/checkout
@@ -36,20 +55,6 @@ Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "cartId": "1a6f6e84-88e5-4a55-b8ee-228bee4715bf"
-}
-
-### Create a Cart
-POST {{baseUrl}}/carts
-Content-Type: application/json
-Authorization: Bearer {{auth_token}}
-
-### Add Items to cart
-POST {{baseUrl}}/carts/1a6f6e84-88e5-4a55-b8ee-228bee4715bf/items
-Content-Type: application/json
-Authorization: Bearer {{auth_token}}
-
-{
-  "productId": "6"
+  "cartId": "{{cart_id}}"
 }
 
