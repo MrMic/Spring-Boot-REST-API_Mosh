@@ -19,7 +19,6 @@ Authorization: Bearer {{auth_token}}
 GET http://localhost:8080/admin/hello
 Authorization: Bearer {{auth_token}}
 
-
 ### LOGIN
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
@@ -29,8 +28,9 @@ Content-Type: application/json
   "password": "123456"
 }
 
-> {% client.global.set("auth_token", response.body.token); %}
-
+> {%
+    client.global.set("auth_token", response.body.token);
+%}
 
 
 ### Create a Cart
@@ -38,7 +38,9 @@ POST {{baseUrl}}/carts
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
-> {% client.global.set("cart_id", response.body.id); %}
+> {%
+    client.global.set("cart_id", response.body.id);
+%}
 
 ### Add Items to cart
 POST {{baseUrl}}/carts/{{cart_id}}/items
