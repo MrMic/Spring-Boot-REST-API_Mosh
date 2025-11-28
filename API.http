@@ -1,6 +1,20 @@
 ### ENV
 @baseUrl = http://localhost:8080
 
+### LOGIN
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user1@example.com",
+  "password": "123456"
+}
+
+> {%
+    client.global.set("auth_token", response.body.token);
+%}
+
+########################################################################
 ### CREATE USER
 POST {{baseUrl}}/users
 Content-Type: application/json
@@ -19,22 +33,10 @@ Authorization: Bearer {{auth_token}}
 GET http://localhost:8080/admin/hello
 Authorization: Bearer {{auth_token}}
 
-### LOGIN
-POST {{baseUrl}}/auth/login
-Content-Type: application/json
-
-{
-  "email": "user1@example.com",
-  "password": "123456"
-}
-
-> {%
-    client.global.set("auth_token", response.body.token);
-%}
-
-
+#######################################################################
 ### Create a Cart
 POST {{baseUrl}}/carts
+@name cart
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
@@ -48,7 +50,7 @@ Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "productId": "6"
+  "productId": 6
 }
 
 ### Test Checkout
@@ -60,3 +62,7 @@ Authorization: Bearer {{auth_token}}
   "cartId": "{{cart_id}}"
 }
 
+### Get All Orders
+GET {{baseUrl}}/orders
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
