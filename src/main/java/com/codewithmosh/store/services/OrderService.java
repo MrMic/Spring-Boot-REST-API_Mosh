@@ -1,26 +1,39 @@
 package com.codewithmosh.store.services;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import com.codewithmosh.store.dtos.OrderDto;
+import com.codewithmosh.store.exceptions.OrderNotFoundException;
 import com.codewithmosh.store.mappers.OrderMapper;
 import com.codewithmosh.store.repositories.OrderRepository;
-
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @AllArgsConstructor
 @Service
 public class OrderService {
 
-  private final AuthService authService;
-  private final OrderRepository orderRepository;
-  private final OrderMapper orderMapper;
+    private final AuthService authService;
+    private final OrderRepository orderRepository;
+    private final OrderMapper orderMapper;
 
-  public List<OrderDto> getAllOrders() {
+    public List<OrderDto> getAllOrders() {
         var user = authService.getCurrentUser();
-        var orders = orderRepository.findAllByCustomer(user);
+        var orders = orderRepository.getOrdersByCustomer(user);
         return orders.stream().map(orderMapper::toDto).toList();
-  }
-}
+    }
+
+    public OrderDto getOrder(Long orderId) {
+        var order = orderRepository
+            .getOrderWithItems(orderId)
+            .orElseThrow(OrderNotFoundException::new);
+
+        var user = authService.getCurrentUser();
+        if (!order.isPLaced(user)) {
+            throw new AccessDeniedException("You are not authorized to access this order.");
+        }
+
+        return orderMapper.toDto(order);
+    }
+    }
