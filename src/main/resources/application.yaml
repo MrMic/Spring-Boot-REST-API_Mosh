@@ -27,3 +27,4 @@ spring:
     refresh-token-expiration: 604800 # 7 days
 stripe:
   secretKey: ${STRIPE_SECRET_KEY}
+websiteUrl: http://localhost:4242

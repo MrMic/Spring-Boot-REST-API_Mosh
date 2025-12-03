@@ -1,42 +1,73 @@
 package com.codewithmosh.store.services;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import com.codewithmosh.store.dtos.CheckoutRequest;
 import com.codewithmosh.store.dtos.CheckoutResponse;
-import com.codewithmosh.store.dtos.ErrorDto;
 import com.codewithmosh.store.entities.Order;
 import com.codewithmosh.store.exceptions.CartEmptyException;
 import com.codewithmosh.store.exceptions.CartNotFoundException;
 import com.codewithmosh.store.repositories.CartRepository;
 import com.codewithmosh.store.repositories.OrderRepository;
-import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import com.stripe.exception.StripeException;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.checkout.SessionCreateParams;
 
-@AllArgsConstructor
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @Service
 public class CheckoutService {
-    private final CartRepository cartRepository;
-    private final OrderRepository orderRepository;
-    private final AuthService authService;
-    private final CartService cartService;
+  private final CartRepository cartRepository;
+  private final OrderRepository orderRepository;
+  private final AuthService authService;
+  private final CartService cartService;
 
-    public CheckoutResponse checkout(CheckoutRequest request) {
+  @Value("${websiteUrl}")
+  private String websiteUrl;
 
-        var cart = cartRepository.getCartWithItems(request.getCartId()).orElse(null);
-        if (cart == null) {
-            throw new CartNotFoundException();
-        }
+  public CheckoutResponse checkout(CheckoutRequest request) throws StripeException {
 
-        if (cart.isEmpty()) {
-            throw new CartEmptyException();
-        }
-
-        var order = Order.fromCart(cart, authService.getCurrentUser());
-
-        orderRepository.save(order);
-
-        cartService.clearCart(cart.getId());
-
-        return new CheckoutResponse(order.getId());
+    var cart = cartRepository.getCartWithItems(request.getCartId()).orElse(null);
+    if (cart == null) {
+      throw new CartNotFoundException();
     }
+
+    if (cart.isEmpty()) {
+      throw new CartEmptyException();
+    }
+
+    var order = Order.fromCart(cart, authService.getCurrentUser());
+
+    orderRepository.save(order);
+
+    // Create a Checkout Session - Stripe
+    var builder = SessionCreateParams.builder()
+        .setMode(SessionCreateParams.Mode.PAYMENT)
+        .setSuccessUrl(websiteUrl + "/checkout-success.html?orderId=" + order.getId())
+        .setCancelUrl(websiteUrl + "/checkout-cancel.html");
+
+    order.getItems().forEach(item -> {
+      var lineItem = SessionCreateParams.LineItem.builder()
+          .setQuantity(Long.valueOf(item.getQuantity()))
+          .setPriceData(
+              SessionCreateParams.LineItem.PriceData.builder()
+                  .setCurrency("usd")
+                  .setUnitAmountDecimal(item.getUnitPrice())
+                  .setProductData(
+                      SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                          .setName(item.getProduct().getName())
+                          .build())
+                  .build())
+          .build();
+      builder.addLineItem(lineItem);
+    });
+
+    var session = Session.create(builder.build());
+
+    cartService.clearCart(cart.getId());
+
+    return new CheckoutResponse(order.getId(), session.getUrl());
+  }
 }
