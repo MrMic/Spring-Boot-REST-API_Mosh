@@ -1,4 +1,6 @@
 @baseUrl = http://localhost:8080
+@authToken =
+@cart_id =
 
 ### LOGIN
 POST {{baseUrl}}/auth/login
@@ -9,9 +11,7 @@ Content-Type: application/json
   "password": "123456"
 }
 
-> {%
-    client.global.set("authToken", response.body.token);
-%}
+> {% client.global.set("authToken", response.body.token); %}
 
 ########################################################################
 ### CREATE USER
