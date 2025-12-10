@@ -1,25 +1,45 @@
 package com.codewithmosh.store.controllers;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.codewithmosh.store.dtos.CheckoutRequest;
 import com.codewithmosh.store.dtos.CheckoutResponse;
 import com.codewithmosh.store.dtos.ErrorDto;
+import com.codewithmosh.store.entities.OrderStatus;
 import com.codewithmosh.store.exceptions.CartEmptyException;
 import com.codewithmosh.store.exceptions.CartNotFoundException;
 import com.codewithmosh.store.exceptions.PaymentException;
+import com.codewithmosh.store.repositories.OrderRepository;
 import com.codewithmosh.store.services.CheckoutService;
-import com.stripe.exception.StripeException;
-import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import com.stripe.exception.SignatureVerificationException;
+import com.stripe.model.PaymentIntent;
+import com.stripe.net.Webhook;
 
-@AllArgsConstructor
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/checkout")
 public class CheckoutController {
 
   private final CheckoutService checkoutService;
+  private final OrderRepository orderRepository;
+
+  @Value("${stripe.webhookSecretKey}")
+  private String webhookSecretKey;
 
   @PostMapping
   public CheckoutResponse checkout(@Valid @RequestBody CheckoutRequest request) {
@@ -27,11 +47,50 @@ public class CheckoutController {
   }
 
   // ──────────────────────────────────────────────────────────────────────
+  @PostMapping("/webhook")
+  public ResponseEntity<Void> handleWebhook(
+      @RequestHeader("Stripe-Signature") String stripeSignature,
+      HttpServletRequest request) throws IOException {
+    try {
+      // WARN: Read the raw body
+      String payload = new String(request.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+
+      var event = Webhook.constructEvent(payload, stripeSignature, webhookSecretKey);
+      System.out.println(event.getType());
+
+      var stripeObject = event.getDataObjectDeserializer().getObject().orElse(null);
+
+      // INFO: charge -> (Charge) stripeObject
+      // INFO: payment_intent.succeeded -> (PaymentIntent) stripeObject
+
+      switch (event.getType()) {
+        case "payment_intent.succeeded" -> {
+          var paymentIntent = (PaymentIntent) stripeObject;
+          if (paymentIntent != null) {
+            var orderId = paymentIntent.getMetadata().get("order_id");
+            var order = orderRepository.findById(Long.valueOf(orderId)).orElseThrow();
+            order.setStatus(OrderStatus.PAID);
+            orderRepository.save(order);
+          }
+        }
+        case "payment_intent.failed" -> {
+          // INFO: Update order status (FAILED)
+        }
+      }
+
+      return ResponseEntity.ok().build();
+
+    } catch (SignatureVerificationException e) {
+      return ResponseEntity.badRequest().build();
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
   @ExceptionHandler(PaymentException.class)
   public ResponseEntity<?> handlePaymentException() {
     return ResponseEntity
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(new ErrorDto("Error processing payment."));
+        .body(new ErrorDto("Error creating a checkout session."));
   }
 
   // ──────────────────────────────────────────────────────────────────────
