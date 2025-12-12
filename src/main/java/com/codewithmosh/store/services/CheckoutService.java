@@ -23,6 +23,7 @@ public class CheckoutService {
   private final CartService cartService;
   private final PaymentGateway paymentGateway;
 
+  // ______________________________________________________________________
   @Transactional
   public CheckoutResponse checkout(CheckoutRequest request) {
 
@@ -49,5 +50,15 @@ public class CheckoutService {
       orderRepository.delete(order);
       throw ex;
     }
+  }
+
+  // ______________________________________________________________________
+  public void handleWebhookEvent(WebhookRequest request) {
+    paymentGateway.parseWebhookRequest(request)
+        .ifPresent(paymentResult -> {
+          var order = orderRepository.findById(paymentResult.getOrderId()).orElseThrow();
+          order.setStatus(paymentResult.getPaymentStatus());
+          orderRepository.save(order);
+        });
   }
 }

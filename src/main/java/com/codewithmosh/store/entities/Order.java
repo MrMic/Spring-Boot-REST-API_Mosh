@@ -24,7 +24,7 @@ public class Order {
 
   @Column(name = "status")
   @Enumerated(EnumType.STRING)
-  private OrderStatus status;
+  private PaymentStatus status;
 
   // * INFO: The database will automatically set this value when the record is
   // created
@@ -34,7 +34,7 @@ public class Order {
   @Column(name = "total_price")
   private BigDecimal totalPrice;
 
-  @OneToMany(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+  @OneToMany(mappedBy = "order", cascade = { CascadeType.PERSIST, CascadeType.REMOVE })
   private Set<OrderItem> items = new LinkedHashSet<>();
 
   // ______________________________________________________________________
@@ -42,7 +42,7 @@ public class Order {
 
     var order = new Order();
     order.setCustomer(customer);
-    order.setStatus(OrderStatus.PENDING);
+    order.setStatus(PaymentStatus.PENDING);
     order.setTotalPrice(cart.getTotalPrice());
 
     cart.getItems()
