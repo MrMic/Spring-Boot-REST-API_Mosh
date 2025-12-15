@@ -1,31 +1,12 @@
 spring:
   application:
     name: store
-  datasource:
-    url: jdbc:mysql://172.32.0.3:3306/store_api?createDatabaseIfNotExist=true
-    username: root
-    password: pepere
-  jpa:
-    show-sql: true
-
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
-    validate-on-migrate: false
-    locations: classpath:db/migration
-
-  thymeleaf:
-    cache: false
-  devtools:
-    restart:
-      enabled: true
-    livereload:
-      enabled: true
   jwt:
     secret: ${JWT_SECRET}
     access-token-expiration: 7200 # 2 hours
     refresh-token-expiration: 604800 # 7 days
+  profiles:
+    active: dev
 stripe:
   secretKey: ${STRIPE_SECRET_KEY}
   webhookSecretKey: ${STRIPE_WEBHOOK_SECRET_KEY}
-websiteUrl: http://localhost:4242
