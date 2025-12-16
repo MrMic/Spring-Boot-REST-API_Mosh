@@ -43,7 +43,8 @@ public class SecurityConfig {
   }
 
   @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
+      throws Exception {
     return config.getAuthenticationManager();
   }
 
@@ -54,20 +55,44 @@ public class SecurityConfig {
     // * INFO: Authorize
     http.sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(c -> c
-            .requestMatchers("/carts/**").permitAll()
-            .requestMatchers("/admin/**").hasRole(Role.ADMIN.name())
-            .requestMatchers(HttpMethod.POST, "/users").permitAll()
-            .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-            .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
-            .requestMatchers(HttpMethod.POST, "/checkout/webhook").permitAll()
-            .anyRequest().authenticated())
+        .authorizeHttpRequests(
+            c ->
+                c.requestMatchers("/swagger-ui/**")
+                    .permitAll()
+                    .requestMatchers("/swagger-ui/html")
+                    .permitAll()
+                    .requestMatchers("/v3/api-docs/**")
+                    .permitAll()
+                    .requestMatchers("/carts/**")
+                    .permitAll()
+                    .requestMatchers("/admin/**")
+                    .hasRole(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.POST, "/users")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/products/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/products/**")
+                    .hasRole(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.PUT, "/products/**")
+                    .hasRole(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.DELETE, "/products/**")
+                    .hasRole(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.POST, "/auth/login")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/auth/refresh")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/checkout/webhook")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-        .exceptionHandling(c -> {
-          c.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
-          c.accessDeniedHandler(
-              ((request, response, accessDeniedException) -> response.setStatus(HttpStatus.FORBIDDEN.value())));
-        });
+        .exceptionHandling(
+            c -> {
+              c.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
+              c.accessDeniedHandler(
+                  ((request, response, accessDeniedException) ->
+                      response.setStatus(HttpStatus.FORBIDDEN.value())));
+            });
 
     return http.build();
   }
