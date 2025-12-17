@@ -29,11 +29,13 @@ public class SecurityConfig {
   private final UserDetailsService userDetailsService;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+  // ______________________________________________________________________
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
   }
 
+  // ______________________________________________________________________
   @Bean
   public AuthenticationProvider authenticationProvider() {
     var provider = new DaoAuthenticationProvider();
@@ -48,6 +50,7 @@ public class SecurityConfig {
     return config.getAuthenticationManager();
   }
 
+  // ______________________________________________________________________
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     // * INFO: Stateless sessions (Token-based authentication)
